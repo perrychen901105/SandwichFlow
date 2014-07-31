@@ -36,6 +36,7 @@
 		72EC195217A64A8B00D1716D /* Sandwiches.json in Resources */ = {isa = PBXBuildFile; fileRef = 72EC195117A64A8B00D1716D /* Sandwiches.json */; };
 		72EC195817AB952400D1716D /* SandwichesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 72EC195717AB952400D1716D /* SandwichesViewController.m */; };
 		72F555F8179C323C00652B98 /* CollectionViewLabelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 72F555F7179C323600652B98 /* CollectionViewLabelCell.m */; };
+		C2759443198A366E003733F3 /* DynamicSandwichViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2759442198A366E003733F3 /* DynamicSandwichViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,6 +86,8 @@
 		72EC195717AB952400D1716D /* SandwichesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SandwichesViewController.m; sourceTree = "<group>"; };
 		72F555F6179C323600652B98 /* CollectionViewLabelCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CollectionViewLabelCell.h; sourceTree = "<group>"; };
 		72F555F7179C323600652B98 /* CollectionViewLabelCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CollectionViewLabelCell.m; sourceTree = "<group>"; };
+		C2759441198A366E003733F3 /* DynamicSandwichViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DynamicSandwichViewController.h; sourceTree = "<group>"; };
+		C2759442198A366E003733F3 /* DynamicSandwichViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DynamicSandwichViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -176,6 +179,8 @@
 				72E28E3817B1A0F300EAD04E /* SandwichViewController.m */,
 				72EC195617AB952400D1716D /* SandwichesViewController.h */,
 				72EC195717AB952400D1716D /* SandwichesViewController.m */,
+				C2759441198A366E003733F3 /* DynamicSandwichViewController.h */,
+				C2759442198A366E003733F3 /* DynamicSandwichViewController.m */,
 			);
 			path = SandwichFlow;
 			sourceTree = "<group>";
@@ -320,6 +325,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				72E28E3917B1A0F300EAD04E /* SandwichViewController.m in Sources */,
+				C2759443198A366E003733F3 /* DynamicSandwichViewController.m in Sources */,
 				72EC195817AB952400D1716D /* SandwichesViewController.m in Sources */,
 				72B7A9EC1795262100BB168C /* AppDelegate.m in Sources */,
 				72B7A9E81795262100BB168C /* main.m in Sources */,
