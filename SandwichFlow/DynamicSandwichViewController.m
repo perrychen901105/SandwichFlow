@@ -290,7 +290,7 @@
     for (NSDictionary *sandwich in [self sandwiches]) {
         UIView* view = [self addRecipeAtOffset:offset forSandwich:sandwich];
         [_views addObject:view];
-        
+        view.clipsToBounds = YES;
         [self addMotionEffectToView:view magnitude:-offset * 0.2];
         offset -= 50.0f;
 
