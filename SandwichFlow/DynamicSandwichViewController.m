@@ -212,6 +212,20 @@
     if ([@2 isEqual:identifier]) {
         UIView *view = (UIView *)item;
         [self tryDockView:view];
+    } else if ([@1 isEqual:identifier]) {
+        // add other dynamic collision
+        UIView *view = (UIView *)item;
+        UIDynamicItemBehavior *tbehaviour = [self itemBehaviourForView:view];
+        CGPoint velocityCollision = [tbehaviour linearVelocityForItem:view];
+        NSLog(@"behaviour is %f",velocityCollision.y);
+        for (UIView *subView in _views) {
+            if (view != subView) {
+                UIDynamicItemBehavior *subitemBehaviour = [self itemBehaviourForView:subView];
+                float bounceMagnitude = arc4random() % 50 + velocityCollision.y * 0.5;
+                NSLog(@"during velocity is %f",bounceMagnitude);
+                [subitemBehaviour addLinearVelocity:CGPointMake(0, bounceMagnitude) forItem:subView];
+            }
+        }
     }
 }
 
