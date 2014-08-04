@@ -144,6 +144,7 @@
      */
     // 3. add as a child
     [self addChildViewController:viewController];
+    
     [self.view addSubview:viewController.view];
     [viewController didMoveToParentViewController:self];
 
@@ -287,8 +288,12 @@
     _views = [NSMutableArray new];
     float offset = 250.0f;
     for (NSDictionary *sandwich in [self sandwiches]) {
-        [_views addObject:[self addRecipeAtOffset:offset forSandwich:sandwich]];
+        UIView* view = [self addRecipeAtOffset:offset forSandwich:sandwich];
+        [_views addObject:view];
+        
+        [self addMotionEffectToView:view magnitude:-offset * 0.2];
         offset -= 50.0f;
+
     }
     // Do any additional setup after loading the view.
 }
