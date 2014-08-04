@@ -9,13 +9,16 @@
 #import "DynamicSandwichViewController.h"
 #import "SandwichViewController.h"
 #import "AppDelegate.h"
-@interface DynamicSandwichViewController ()
+@interface DynamicSandwichViewController ()<UICollisionBehaviorDelegate>
 {
     NSMutableArray *_views;
     
     UIGravityBehavior* _gravity;
     UIDynamicAnimator* _animator;
+    UISnapBehavior *_snap;
+    
     CGPoint _previousTouchPoint;
+    BOOL _viewDocked;
     BOOL _draggingView;
 }
 @end
@@ -35,6 +38,45 @@
 {
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     return appDelegate.sandwiches;
+}
+
+- (void)addVelocityToView:(UIView *)view fromGesture:(UIPanGestureRecognizer*)gesture {
+    CGPoint vel = [gesture velocityInView:self.view];
+    vel.x = 0;
+    UIDynamicItemBehavior *behaviour = [self itemBehaviourForView:view];
+    [behaviour addLinearVelocity:vel forItem:view];
+}
+
+- (void)setAlphaWhenViewDocked:(UIView*)view
+                         alpha:(CGFloat)alpha
+{
+    for (UIView *aView in _views) {
+        if (aView != view) {
+            aView.alpha = alpha;
+        }
+    }
+}
+
+/**
+ *  Checks whether the view has been dragged close to the top of the screen.
+ */
+- (void)tryDockView:(UIView *)view
+{
+    BOOL viewHasReachedDockLocation = view.frame.origin.y < 100.0;
+    if (viewHasReachedDockLocation) {
+        if (!_viewDocked) {
+            _snap = [[UISnapBehavior alloc] initWithItem:view snapToPoint:self.view.center];
+            [_animator addBehavior:_snap];
+            [self setAlphaWhenViewDocked:view alpha:0.0];
+            _viewDocked = YES;
+        }
+    } else {
+        if (_viewDocked) {
+            [_animator removeBehavior:_snap];
+            [self setAlphaWhenViewDocked:view alpha:1.0];
+            _viewDocked = NO;
+        }
+    }
 }
 
 - (void)handlePan:(UIPanGestureRecognizer*)gesture {
@@ -69,6 +111,8 @@
          *
          */
         // 3. the gesture has ended
+        [self tryDockView:draggedView];
+        [self addVelocityToView:draggedView fromGesture:gesture];
         [_animator updateItemUsingCurrentState:draggedView];
         _draggingView = NO;
     }
@@ -125,9 +169,18 @@
      */
     // 3. lower boundary, where the tab resets
     float boundary = view.frame.origin.y + view.frame.size.height + 1;
+    
+    NSLog(@"view origin y is %f, height is %f, boundary is %f",view.frame.origin.y,view.frame.size.height,boundary);
     CGPoint boundaryStart = CGPointMake(0.0, boundary);
     CGPoint boundaryEnd = CGPointMake(self.view.bounds.size.width, boundary);
     [collision addBoundaryWithIdentifier:@1 fromPoint:boundaryStart toPoint:boundaryEnd];
+    
+    // add the top boundary
+    boundaryStart = CGPointMake(0.0, 0.0);
+    boundaryEnd = CGPointMake(self.view.bounds.size.width, 0.0);
+    [collision addBoundaryWithIdentifier:@2 fromPoint:boundaryStart toPoint:boundaryEnd];
+    collision.collisionDelegate = self;
+    
     NSLog(@"boundary is %f",boundary);
     
     /**
@@ -137,13 +190,51 @@
     // 4. apply some gravity
     [_gravity addItem:view];
     
+    UIDynamicItemBehavior *itemBehavior = [[UIDynamicItemBehavior alloc] initWithItems:@[view]];
+    [_animator addBehavior:itemBehavior];
+    
     return view;
+}
+
+- (UIDynamicItemBehavior*)itemBehaviourForView:(UIView *)view
+{
+    for (UIDynamicItemBehavior *behaviour in _animator.behaviors) {
+        if (behaviour.class == [UIDynamicItemBehavior class] && [behaviour.items firstObject] == view) {
+            return behaviour;
+        }
+    }
+    return nil;
+}
+
+// collision behaviour delegate methods
+- (void)collisionBehavior:(UICollisionBehavior *)behavior beganContactForItem:(id<UIDynamicItem>)item withBoundaryIdentifier:(id<NSCopying>)identifier atPoint:(CGPoint)p
+{
+    if ([@2 isEqual:identifier]) {
+        UIView *view = (UIView *)item;
+        [self tryDockView:view];
+    }
+}
+
+- (void)addMotionEffectToView:(UIView*)view
+                    magnitude:(float)magnitude
+{
+    UIInterpolatingMotionEffect *xMotion = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
+    xMotion.minimumRelativeValue = @(-magnitude);
+    xMotion.maximumRelativeValue = @(magnitude);
+    
+    UIInterpolatingMotionEffect *yMotion = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
+    yMotion.minimumRelativeValue = @(-magnitude);
+    yMotion.maximumRelativeValue = @(magnitude);
+
+    UIMotionEffectGroup *group = [[UIMotionEffectGroup alloc] init];
+    group.motionEffects = @[xMotion, yMotion];
+    [view addMotionEffect:group];
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+/*
     // Background image
     UIImageView* backgroundImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Background-LowerLayer.png"]];
     [self.view addSubview:backgroundImageView];
@@ -152,6 +243,23 @@
     UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Sarnie.png"]];
     header.center = CGPointMake(220, 190);
     [self.view addSubview:header];
+*/
+    // 1. add the lower background layer
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage
+                                        :[UIImage imageNamed:@"Background-LowerLayer.png"]];
+    backgroundImageView.frame = CGRectInset(self.view.frame, -50.0f, -50.0f);
+    [self.view addSubview:backgroundImageView];
+    [self addMotionEffectToView:backgroundImageView magnitude:50.0f];
+    
+    // 2. add the background mid layer
+    UIImageView *midLayerImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Background-MidLayer.png"]];
+    [self.view addSubview:midLayerImageView];
+    
+    // 3. add the foreground image
+    UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Sarnie.png"]];
+    header.center = CGPointMake(220, 190);
+    [self.view addSubview:header];
+    [self addMotionEffectToView:header magnitude:-20.0f];
     
     _animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
     _gravity = [[UIGravityBehavior alloc] init];
